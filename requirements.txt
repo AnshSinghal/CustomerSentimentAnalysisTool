@@ -8,3 +8,6 @@ gensim
 scikit-learn 
 transformers 
 flask
+praw
+python-dotenv
+
