@@ -25,14 +25,18 @@ def fetch_reviews_top(query, max_results=100):
     reviews = []
     after = None  # To paginate through results
     while len(reviews) < max_results:
-        submissions = reddit.subreddit('all').search(query, sort='top', limit=100, params={'after': after})
+        submissions = reddit.subreddit('all').search(query, sort='relevance', limit=1000, params={'after': after})
         submissions_list = list(submissions)  # Convert to list to access elements
 
         if not submissions_list:
             break  # Exit if no submissions are found
         
         for submission in submissions_list:
-            if submission.selftext.strip() != "" and (query.lower() in submission.title.lower() or query.lower() in submission.selftext.lower()):
+            query_words = query.lower().split()
+            all_words_exist = all(word in submission.title.lower() for word in query_words)
+            all_words_exist2 = all(word in submission.selftext.lower() for word in query_words)
+
+            if submission.selftext.strip() != "" and (all_words_exist or all_words_exist2):
                 reviews.append(submission.selftext.strip())  # Only take the text part
             if len(reviews) >= max_results:
                 break
@@ -79,8 +83,8 @@ def fetch_reviews_hot(query, max_results=100):
     
     return reviews[:max_results]
 
-# Example usage
-query = "amazon"  # You can change this to any product or business name
+# # Example usage
+query = "ola electric"  # You can change this to any product or business name
 
 # Fetch reviews sorted by "top"
 top_reviews = fetch_reviews_top(query)
@@ -89,10 +93,9 @@ for review in top_reviews[:5]:  # Print first 5 reviews as an example
     print(review)
     print("-" * 20)
 
-# Fetch reviews sorted by "hot"
-hot_reviews = fetch_reviews_hot(query)
-print(f"\nTotal Hot Reviews: {len(hot_reviews)}")
-for review in hot_reviews[:5]:  # Print first 5 reviews as an example
-    print(review)
-    print("-" * 20)
-
+# # Fetch reviews sorted by "hot"
+# hot_reviews = fetch_reviews_hot(query)
+# print(f"\nTotal Hot Reviews: {len(hot_reviews)}")
+# for review in hot_reviews[:5]:  # Print first 5 reviews as an example
+#     print(review)
+#     print("-" * 20)
