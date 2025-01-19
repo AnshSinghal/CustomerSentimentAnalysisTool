@@ -38,40 +38,44 @@ def fetch_reviews_top(query, max_results=100):
     reviews = []
 
     # Dynamically fetch subreddits with "review" in their name
-    
-    subreddits_list = [sub.display_name for sub in reddit.subreddits.search(original_query)]
-    print(subreddits_list)
-    for sub in subreddits_list:
-        print(f"Fetching reviews from r/{sub}...")
-        print(len(reviews))
-        if len(reviews) >= max_results:
-            break
-        # Fetch submissions from the subreddit
-        submissions = reddit.subreddit(sub).search(query, sort='relevance', limit=100)
-        submissions_list = list(submissions)  # Convert to list
-
-        if not submissions_list:
-            break  # Exit if no submissions are found
-        
-        for submission in submissions_list:
-            original_query = original_query.lower()
-            title = submission.title.lower()
-            body = submission.selftext.lower()
-            # Check if query words are in the title or body of the submission
-            # query_words = [f" {word} " for word in query.lower().split()]  # Add spaces to match whole words
-            # all_words_exist = all(word in submission.title.lower() for word in query_words)
-            # all_words_exist2 = all(word in submission.selftext.lower() for word in query_words)
-
-
-            if submission.selftext.strip() and (original_query in title or original_query in body):
-                reviews.append(submission.selftext.strip())  # Collect review text
+    try:
+        subreddits_list = [sub.display_name for sub in reddit.subreddits.search(original_query)]
+        print(subreddits_list)
+        for sub in subreddits_list:
+            print(f"Fetching reviews from r/{sub}...")
+            print(len(reviews))
             if len(reviews) >= max_results:
                 break
-    
-    # Retry with a broader query if fewer than max_results are found
-    # if len(reviews) < max_results:
-    #     print(f"Only {len(reviews)} reviews found. Retrying with a broader query...")
-    #     reviews += fetch_reviews_top("review", max_results - len(reviews))
+            # Fetch submissions from the subreddit
+            submissions = reddit.subreddit(sub).search(query, sort='relevance', limit=100)
+            submissions_list = list(submissions)  # Convert to list
+
+            if not submissions_list:
+                break  # Exit if no submissions are found
+            
+            for submission in submissions_list:
+                original_query = original_query.lower()
+                title = submission.title.lower()
+                body = submission.selftext.lower()
+                # Check if query words are in the title or body of the submission
+                # query_words = [f" {word} " for word in query.lower().split()]  # Add spaces to match whole words
+                # all_words_exist = all(word in submission.title.lower() for word in query_words)
+                # all_words_exist2 = all(word in submission.selftext.lower() for word in query_words)
+
+
+                if submission.selftext.strip() and (original_query in title or original_query in body):
+                    reviews.append(submission.selftext.strip())  # Collect review text
+                if len(reviews) >= max_results:
+                    break
+        
+        # Retry with a broader query if fewer than max_results are found
+        # if len(reviews) < max_results:
+        #     print(f"Only {len(reviews)} reviews found. Retrying with a broader query...")
+        #     reviews += fetch_reviews_top("review", max_results - len(reviews))
+    except Exception as e:
+        # Log the error and continue execution
+        print(f"Error occurred: {e}")
+        print(f"Returning the reviews collected so far: {len(reviews)} reviews")
     
     return reviews[:max_results]
 import csv
@@ -93,7 +97,7 @@ def export_reviews_to_csv(reviews, filename="reviews.csv"):
     print(f"Reviews successfully saved to {filename}")
 
 # Example usage
-query = "ola scooter"  # Replace with your desired query
+query = "Microsoft Windows"  # Replace with your desired query
 
 # Fetch reviews sorted by "top"
 top_reviews = fetch_reviews_top(query)
