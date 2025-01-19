@@ -1,6 +1,23 @@
 import os
 import dotenv
 import praw
+import re
+
+# Function to ensure all words from the query are present in the text (strict matching)
+def contains_all_query_words(text, query):
+    """
+    Check if a text contains all words from the query (case-insensitive).
+
+    Parameters:
+        text (str): The text to search.
+        query (str): The query containing words to match.
+
+    Returns:
+        bool: True if all words are found, False otherwise.
+    """
+    query_words = query.lower().split()
+    text_lower = text.lower()
+    return all(re.search(r"\\b" + re.escape(word) + r"\\b", text_lower) for word in query_words)
 
 # Load environment variables from .env
 dotenv.load_dotenv()
@@ -48,24 +65,19 @@ def fetch_reviews_top(query, max_results=100):
             break
         # Fetch submissions from the subreddit
         submissions = reddit.subreddit(sub).search(query, sort='relevance', limit=100)
-        submissions_list = list(submissions)  # Convert to list
+        # submissions_list = list(submissions)  # Convert to list
 
-        if not submissions_list:
-            break  # Exit if no submissions are found
+        # if not submissions_list:
+        #     break  # Exit if no submissions are found
         
-        for submission in submissions_list:
-            original_query = original_query.lower()
-            title = submission.title.lower()
-            body = submission.selftext.lower()
-            # Check if query words are in the title or body of the submission
-            query_words = [f" {word} " for word in query.lower().split()]  # Add spaces to match whole words
-            all_words_exist = all(word in submission.title.lower() for word in query_words)
-            all_words_exist2 = all(word in submission.selftext.lower() for word in query_words)
-
-            if submission.selftext.strip() and (original_query in title or original_query in body):
-                reviews.append(submission.selftext.strip())  # Collect review text
+        for submission in submissions:
             if len(reviews) >= max_results:
                 break
+
+            # Check strict matching in both title and body
+            if (contains_all_query_words(submission.title, original_query) or
+                contains_all_query_words(submission.selftext, original_query)):
+                reviews.append(submission.selftext.strip())
     
     # Retry with a broader query if fewer than max_results are found
     if len(reviews) < max_results:
@@ -93,10 +105,20 @@ def export_reviews_to_csv(reviews, filename="reviews.csv"):
 
 
 # Example usage
-query = "ola scooter"  # Replace with your desired query
+query = "ola electric"  # Replace with your desired query
 
 # Fetch reviews sorted by "top"
 top_reviews = fetch_reviews_top(query)
 
 # Export reviews to CSV
 export_reviews_to_csv(top_reviews, filename="top_reviews.csv")
+
+# # Example usage
+query = "ola electric"  # You can change this to any product or business name
+
+# Fetch reviews sorted by "top"
+top_reviews = fetch_reviews_top(query)
+print(f"Total Top Reviews: {len(top_reviews)}")
+for review in top_reviews[:5]:  # Print first 5 reviews as an example
+    print(review)
+    print("-" * 20)
