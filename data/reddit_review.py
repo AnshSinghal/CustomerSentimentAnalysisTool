@@ -58,9 +58,10 @@ def fetch_reviews_top(query, max_results=100):
             title = submission.title.lower()
             body = submission.selftext.lower()
             # Check if query words are in the title or body of the submission
-            query_words = [f" {word} " for word in query.lower().split()]  # Add spaces to match whole words
-            all_words_exist = all(word in submission.title.lower() for word in query_words)
-            all_words_exist2 = all(word in submission.selftext.lower() for word in query_words)
+            # query_words = [f" {word} " for word in query.lower().split()]  # Add spaces to match whole words
+            # all_words_exist = all(word in submission.title.lower() for word in query_words)
+            # all_words_exist2 = all(word in submission.selftext.lower() for word in query_words)
+
 
             if submission.selftext.strip() and (original_query in title or original_query in body):
                 reviews.append(submission.selftext.strip())  # Collect review text
@@ -68,9 +69,9 @@ def fetch_reviews_top(query, max_results=100):
                 break
     
     # Retry with a broader query if fewer than max_results are found
-    if len(reviews) < max_results:
-        print(f"Only {len(reviews)} reviews found. Retrying with a broader query...")
-        reviews += fetch_reviews_top("review", max_results - len(reviews))
+    # if len(reviews) < max_results:
+    #     print(f"Only {len(reviews)} reviews found. Retrying with a broader query...")
+    #     reviews += fetch_reviews_top("review", max_results - len(reviews))
     
     return reviews[:max_results]
 import csv
@@ -90,7 +91,6 @@ def export_reviews_to_csv(reviews, filename="reviews.csv"):
             writer.writerow([review])  # Write each review in a new row
 
     print(f"Reviews successfully saved to {filename}")
-
 
 # Example usage
 query = "ola scooter"  # Replace with your desired query
